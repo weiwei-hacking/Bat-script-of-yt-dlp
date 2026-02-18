@@ -56,39 +56,34 @@ timeout /t 1 >nul
 exit
 
 :INSTALL_FFMPEG
-set "TEMP_BAT=%temp%\install_ffmpeg.bat"
-(
-echo @echo off
-echo chcp 65001 ^>nul
-echo echo Downloading ffmpeg...
-echo.
-echo :: Download ffmpeg
-echo curl -L "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip" -o "%temp%\ffmpeg.zip"
-echo.
-echo :: Extract
-echo echo Extracting...
-echo powershell -command "Expand-Archive -Path '%temp%\ffmpeg.zip' -DestinationPath '%temp%\ffmpeg_extract' -Force"
-echo.
-echo :: Move to target directory
-echo if not exist "C:\ffmpeg" mkdir "C:\ffmpeg"
-echo xcopy /E /I /Y "%temp%\ffmpeg_extract\ffmpeg-master-latest-win64-gpl\bin" "C:\ffmpeg"
-echo.
-echo :: Add to system PATH
-echo setx /M PATH "%%PATH%%;C:\ffmpeg"
-echo.
-echo :: Clean up temporary files
-echo del "%temp%\ffmpeg.zip"
-echo rmdir /s /q "%temp%\ffmpeg_extract"
-echo.
-echo echo ffmpeg installation completed!
-echo timeout /t 2
-) > "%TEMP_BAT%"
+echo Administrator privileges may be required to install ffmpeg...
 
-echo Administrator privileges required to install ffmpeg...
-powershell -Command "Start-Process '%TEMP_BAT%' -Verb RunAs -Wait"
-del "%TEMP_BAT%"
+:: create install folder
+if not exist "C:\ffmpeg" mkdir "C:\ffmpeg"
 
-:: Refresh environment variables
+:: download ffmpeg release essentials
+echo Downloading ffmpeg from gyan.dev...
+powershell -Command "Invoke-WebRequest -Uri 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -OutFile '%TEMP%\ffmpeg.zip'"
+
+:: extract
+echo Extracting...
+powershell -Command "Expand-Archive -Path '%TEMP%\ffmpeg.zip' -DestinationPath '%TEMP%\ffmpeg_extract' -Force"
+
+:: find extracted folder
+for /f "delims=" %%i in ('dir /b /ad "%TEMP%\ffmpeg_extract\ffmpeg-*"') do set "FFDIR=%TEMP%\ffmpeg_extract\%%i"
+
+:: copy bin to install folder
+xcopy /E /I /Y "%FFDIR%\bin" "C:\ffmpeg"
+
+:: add to PATH (system)
+setx /M PATH "%PATH%;C:\ffmpeg"
+
+:: cleanup
+del "%TEMP%\ffmpeg.zip"
+rmdir /s /q "%TEMP%\ffmpeg_extract"
+
+echo ffmpeg installation completed!
+timeout /t 2
 call :REFRESH_ENV
 exit /b
 
