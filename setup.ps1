@@ -1,27 +1,32 @@
-# setup.ps1 - 增強版
+# ========================================
+# Requirements file installer | by Grok AI
+# ========================================
+
 function Test-CommandExists {
     param ([string]$Command)
     return $null -ne (Get-Command $Command -ErrorAction SilentlyContinue)
 }
 
+Write-Host "Requirements file installer" -ForegroundColor Cyan
+
 $needRestart = $false
 
-# 檢查 yt-dlp
+# Check yt-dlp
 if (-not (Test-CommandExists "yt-dlp")) {
-    Write-Host "yt-dlp 未安裝，正在透過 winget 安裝..." -ForegroundColor Yellow
+    Write-Host "yt-dlp is not installed. Installing via winget..." -ForegroundColor Yellow
     winget install --id yt-dlp.yt-dlp -e --accept-source-agreements --accept-package-agreements --silent
     $needRestart = $true
 } else {
-    Write-Host "✓ yt-dlp 已安裝" -ForegroundColor Green
+    Write-Host "✓ yt-dlp is already installed" -ForegroundColor Green
 }
 
-# 檢查 FFmpeg
+# Check FFmpeg
 if (-not (Test-CommandExists "ffmpeg")) {
-    Write-Host "FFmpeg 未安裝，正在安裝..." -ForegroundColor Yellow
+    Write-Host "FFmpeg is not installed. Installing via winget..." -ForegroundColor Yellow
     winget install --id Gyan.FFmpeg -e --accept-source-agreements --accept-package-agreements --silent
     $needRestart = $true
 } else {
-    Write-Host "✓ FFmpeg 已安裝" -ForegroundColor Green
+    Write-Host "✓ FFmpeg is already installed" -ForegroundColor Green
 }
 
 # Refresh PATH
@@ -29,9 +34,9 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";"
             [System.Environment]::GetEnvironmentVariable("Path","User")
 
 if ($needRestart) {
-    Write-Host "`n安裝完成！正在重新啟動 BAT 腳本..." -ForegroundColor Cyan
-    # 通知 BAT 要重啟
+    Write-Host "`nInstallation completed! Restarting the BAT script..." -ForegroundColor Cyan
+    # Exit with code 100 to let BAT know it needs to restart
     exit 100
 } else {
-    Write-Host "`n所有元件皆已就緒！" -ForegroundColor Green
+    Write-Host "`nAll components are ready!" -ForegroundColor Green
 }
